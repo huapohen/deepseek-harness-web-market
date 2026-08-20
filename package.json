@@ -10,6 +10,7 @@
   },
   "workspaces": [
     "dsh-plugin-desktop",
+    "dsh-plugin-web-market",
     "dsh-community-fabric",
     "dsh-community-market"
   ],
@@ -60,9 +61,9 @@
     }
   },
   "scripts": {
-    "build": "yarn workspace dsh-community-market build && yarn workspace dsh-plugin-desktop build",
-    "typecheck": "yarn workspace dsh-plugin-desktop typecheck && yarn workspace dsh-community-market typecheck",
-    "test": "yarn workspace dsh-plugin-desktop test && yarn workspace dsh-community-market test",
+    "build": "yarn workspace dsh-community-market build && yarn workspace @huapohen/dsh-web-market build && yarn workspace dsh-plugin-desktop build",
+    "typecheck": "yarn workspace dsh-plugin-desktop typecheck && yarn workspace dsh-community-market typecheck && yarn workspace @huapohen/dsh-web-market typecheck",
+    "test": "yarn workspace dsh-plugin-desktop test && yarn workspace dsh-community-market test && yarn workspace @huapohen/dsh-web-market test",
     "test:bilingual-docs": "node --test scripts/bilingual-docs.test.mjs",
     "check:bilingual-docs": "yarn test:bilingual-docs && node scripts/verify-bilingual-docs.mjs",
     "test:architecture-gates": "node --test scripts/market-dependency-direction.test.mjs",

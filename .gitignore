@@ -11,6 +11,10 @@ node_modules/
 
 dsh-plugin-desktop/dist/
 dsh-plugin-desktop/lib/
+dsh-plugin-web-market/lib/
 dsh-community-market/lib/
+
+.playwright-cli/
+output/
 
 .env.yarn

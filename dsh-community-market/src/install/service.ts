@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID } from 'node:crypto'
+import { createRequire } from 'node:module'
+import { readFileSync } from 'node:fs'
 import { readFile, realpath, stat } from 'node:fs/promises'
-import { isAbsolute, join, relative, resolve } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import type { Readable } from 'node:stream'
 import type { SettingsScope } from '@deepseek-ai/dsh-settings'
 import { prerelease, satisfies, valid } from 'semver'
@@ -25,7 +27,25 @@ const MAX_CANDIDATES = 10_000
 const MAX_RECEIPTS = 512
 const LIFECYCLE_SCRIPTS = ['preinstall', 'install', 'postinstall', 'prepare'] as const
 const BLOCKED_PRODUCT_PACKAGES = new Set(['dsh-plugin-desktop', 'dsh-community-market'])
-const DSH_RUNTIME_VERSION = '0.1.1-rc.2'
+const require = createRequire(import.meta.url)
+const DSH_RUNTIME_VERSION = (() => {
+  const cliEntry = process.argv[1]
+  if (cliEntry !== undefined) {
+    try {
+      const manifest = JSON.parse(readFileSync(resolve(dirname(cliEntry), '..', 'package.json'), 'utf8')) as { version?: unknown }
+      if (typeof manifest.version === 'string') return manifest.version
+    } catch {
+      // Library tests and non-CLI consumers fall back to ordinary package resolution.
+    }
+  }
+  try {
+    return (require('@deepseek-ai/dsh/package.json') as { version: string }).version
+  } catch {
+    // The market package is also tested and built outside an installed DSH
+    // profile, where the CLI package is intentionally not a dependency.
+    return '0.1.1-rc.2'
+  }
+})()
 const CORDIS_RUNTIME_VERSION = '4.0.1'
 const NODE_RUNTIME_VERSION = '24.18.1'
 
