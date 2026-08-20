@@ -1,0 +1,6 @@
+# Add the Web-owned package/profile capabilities before the portable market.
+- insert:
+    - id: web-market-host
+      name: '@huapohen/dsh-web-market'
+    - id: community-market
+      name: dsh-community-market
