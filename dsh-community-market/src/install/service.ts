@@ -43,7 +43,7 @@ const DSH_RUNTIME_VERSION = (() => {
   } catch {
     // The market package is also tested and built outside an installed DSH
     // profile, where the CLI package is intentionally not a dependency.
-    return '0.1.0-rc.7'
+    return '0.1.1-rc.2'
   }
 })()
 const CORDIS_RUNTIME_VERSION = '4.0.1'

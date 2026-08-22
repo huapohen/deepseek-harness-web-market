@@ -132,6 +132,7 @@ try {
         dshBootstrapPath: fileURLToPath(new URL('../lib/desktop-cli.js', import.meta.url)),
         installRecoveryStatePath: join(home, 'plugin-install-recovery', 'state.json'),
         generationId: 'profile-smoke-generation',
+        externalMarketInstallEnabled: prepared.market.effective === 'dsh-market',
       })
       await host.plugin(DesktopProfileService, {
         current: {
@@ -234,7 +235,7 @@ try {
   if (response.status !== 200) {
     throw new Error(`assembled Web root returned HTTP ${String(response.status)}`)
   }
-  const bootMatch = html.match(/window\.__DSH_BOOT__ = (\{.*?\})<\/script>/u)
+  const bootMatch = html.match(/(?:window\.__DSH_BOOT__|globalThis\["__DSH_BOOT__"\]) = (\{.*?\})<\/script>/u)
   if (bootMatch?.[1] === undefined) {
     throw new Error('assembled Web root is missing window.__DSH_BOOT__')
   }

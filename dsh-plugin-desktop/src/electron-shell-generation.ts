@@ -10,6 +10,7 @@ import {
   Tray,
 } from 'electron'
 import { formatDesktopExitCode } from './desktop-logger.ts'
+import { applicationNeedsReveal, revealApplication } from './electron-reveal.ts'
 import type { ElectronPlatformStrategy } from './electron-platform.ts'
 import type { DesktopNotification, DesktopShellSpec } from './runtime.ts'
 import { prepareTrayIcon } from './tray-icons.ts'
@@ -34,6 +35,7 @@ export interface ElectronShellGenerationOptions {
   readonly platform: ElectronPlatformStrategy
   readonly spec: DesktopShellSpec
   readonly preloadPath: string
+  readonly buildApplicationMenuItems: () => readonly Electron.MenuItemConstructorOptions[]
   readonly isQuitting: () => boolean
   readonly buildTrayTemplate: () => Electron.MenuItemConstructorOptions[]
   readonly stopRendererBootMonitoring: () => void
@@ -63,7 +65,7 @@ export class ElectronShellGeneration {
     if (icon.isEmpty()) {
       throw new Error(`dsh-plugin-desktop: failed to load application icon ${spec.iconPath}`)
     }
-    platform.configureApplication(icon)
+    platform.configureApplication(icon, spec.productName, this.options.buildApplicationMenuItems())
     const origin = new URL(spec.url).origin
     if (spec.mode === 'advanced') nativeTheme.themeSource = spec.readThemeSource()
     const window = new BrowserWindow(desktopWindowOptions(spec, icon, platform.platform, this.options.preloadPath))
@@ -72,6 +74,9 @@ export class ElectronShellGeneration {
     this.window = window
 
     const show = (): void => { this.show() }
+    const activate = (): void => {
+      if (applicationNeedsReveal(window, platform.platform)) this.show()
+    }
     const clearAttention = (): void => { this.clearAttention() }
     const close = (event: Electron.Event): void => {
       if (this.options.isQuitting()) return
@@ -135,7 +140,8 @@ export class ElectronShellGeneration {
       }
     }
 
-    app.on('activate', show)
+    app.on('activate', activate)
+    if (platform.platform === 'darwin') app.on('did-become-active', activate)
     window.on('close', close)
     window.on('focus', clearAttention)
     window.on('page-title-updated', preserveBlankTitle)
@@ -160,7 +166,8 @@ export class ElectronShellGeneration {
     window.once('ready-to-show', show)
     let tray: Tray | undefined
     this.cleanupListeners = () => {
-      app.off('activate', show)
+      app.off('activate', activate)
+      if (platform.platform === 'darwin') app.off('did-become-active', activate)
       window.off('close', close)
       window.off('focus', clearAttention)
       window.off('page-title-updated', preserveBlankTitle)
@@ -193,9 +200,7 @@ export class ElectronShellGeneration {
     const window = this.window
     if (window === undefined || window.isDestroyed()) return
     this.clearAttention()
-    if (window.isMinimized()) window.restore()
-    window.show()
-    window.focus()
+    revealApplication(window, this.options.platform.platform)
   }
 
   notifyAttention(notification: DesktopNotification): void {
